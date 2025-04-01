@@ -1,6 +1,7 @@
 import math
 import pygame
 import color_manager as cm
+import csv_manager as csvm
 
 class Pie():
     def __init__(self, center, radius):
@@ -39,29 +40,41 @@ class Slice():
 
 def create_pie_graph():
     scale_factor=int(input("Input Scale Factor (whole numbers starting at 1): "))
-    slice_count=int(input("How many Slices? (whole numbers staring at 1): "))
     pie=Pie((125*scale_factor, 125*scale_factor), 75*scale_factor)
+    input_type=input("Use csv file? (Y or N)")
     slices=[]
     surface=pygame.Surface((250*scale_factor, 250*scale_factor), pygame.SRCALPHA)
+    if input_type == "Y":
+        file_path=input("Input file path: ")
+        csv_info=csvm.collect_csv_data(file_path)
+        pie._slice_colors=csv_info[0]
+        pie._slice_names=csv_info[1]
+        for i in range(len(pie._slice_names)):
+            if i == 0:
+                slices.append(Slice(pie, 0, csv_info[2][i]))
+            else:
+                slices.append(Slice(pie, slices[-1]._angle, csv_info[2][i]))
+    else:
+        slice_count=int(input("How many Slices? (whole numbers staring at 1): "))
 
-    for i in range(slice_count):
-        print()
-        color=cm.str_to_col(input("Input Color (r, g, b): "))
-        name=input("Input Slice Name: ")
+        for i in range(slice_count):
+            print()
+            color=cm.str_to_col(input("Input Color (r, g, b): "))
+            name=input("Input Slice Name: ")
 
-        is_percentage=input("Percentage or Fraction? (p or f): ")
-        if is_percentage == "p":
-            percentage=int(input("Input Percentage: "))
-        elif is_percentage == "f":
-            part=int(input("Input Part (top part of fraction): "))
-            whole=int(input("Input Whole (bottom part of fraction): "))
-            percentage=(part/whole*100)
-        if i == 0:
-            slices.append(Slice(pie, 0, percentage))
-        else:
-            slices.append(Slice(pie, slices[-1]._angle, percentage))
-        pie._slice_colors.append(color)
-        pie._slice_names.append(name)
+            is_percentage=input("Percentage or Fraction? (p or f): ")
+            if is_percentage == "p":
+                percentage=int(input("Input Percentage: "))
+            elif is_percentage == "f":
+                part=int(input("Input Part (top part of fraction): "))
+                whole=int(input("Input Whole (bottom part of fraction): "))
+                percentage=(part/whole*100)
+            if i == 0:
+                slices.append(Slice(pie, 0, percentage))
+            else:
+                slices.append(Slice(pie, slices[-1]._angle, percentage))
+            pie._slice_colors.append(color)
+            pie._slice_names.append(name)
     
     pygame.draw.circle(surface, pie._slice_colors[0], pie._center, pie._radius)
     for index, slice in enumerate(slices):
